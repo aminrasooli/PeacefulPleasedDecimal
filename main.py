@@ -2,7 +2,6 @@ from flask import Flask, request, render_template_string
 import requests
 import os
 import csv
-import json
 
 app = Flask(__name__)
 
@@ -39,8 +38,9 @@ def generate_caption(image_url):
         )
 
         result = response.json()
-        print(" Hugging Face API raw response:")
-        print(json.dumps(result, indent=2))
+        # Log only the outcome — never the raw API payload, image data or
+        # model response.
+        print(f" Hugging Face API responded: HTTP {response.status_code}")
 
         if isinstance(result, list) and "generated_text" in result[0]:
             return result[0]["generated_text"]
@@ -111,4 +111,8 @@ def index():
 
     return render_template_string(HTML, result=result)
 
-app.run(host="0.0.0.0", port=81)
+# Bind to localhost by default; hosted deployments (Replit, Cloud Run, ...)
+# set HOST/PORT in the environment instead.
+host = os.getenv("HOST", "127.0.0.1")
+port = int(os.getenv("PORT", "81"))
+app.run(host=host, port=port)
